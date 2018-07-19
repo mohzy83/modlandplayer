@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Modland Player</title>
+    <meta name="description" content="Search and play songs from modland online">
+    <meta name="viewport" content="width=device-width">
+
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	
+    <script type="text/javascript">
+      window['libopenmpt'] = {};
+      libopenmpt.locateFile = function(filename) {
+        return "./" + filename;
+      };
+      libopenmpt.onRuntimeInitialized = function() {
+        var player;
+		var isPlaying = false;
+
+        function init() {
+          if (player == undefined) {
+            player = new ChiptuneJsPlayer(new ChiptuneJsConfig(-1));
+          }
+          else {
+            player.stop();
+            //playPauseButton();
+          }
+        }
+
+        function setMetadata(filename) {
+          var metadata = player.metadata();
+          if (metadata['title'] != '') {
+            document.getElementById('title').innerHTML = metadata['title'];
+          }
+          else {
+            document.getElementById('title').innerHTML = filename;
+          }
+		  document.getElementById('artist').innerHTML = artistName;
+          /*if (metadata['artist'] != '') {
+            document.getElementById('artist').innerHTML = '<br />' + metadata['artist'];
+          }
+          else {
+            document.getElementById('artist').innerHTML = '';
+          }*/
+        }
+				
+		function setPlayPauseButton(button, isSongPlaying) {
+			button.prop("disabled", false);		
+			var iconSpan = button.find("span");
+			if(!isSongPlaying) {
+				$(iconSpan).removeClass('glyphicon-pause');
+				$(iconSpan).addClass('glyphicon-play');
+			} else {
+				$(iconSpan).removeClass('glyphicon-play');
+				$(iconSpan).addClass('glyphicon-pause');
+			}	
+		}
+
+        function loadURL(path) {
+          init();
+          player.load(path, function(buffer) {
+            player.play(buffer);
+            setMetadata(path);
+			isPlaying = true;
+			setPlayPauseButton($("#play"), isPlaying);
+			setPlayPauseButton($(lastElement), isPlaying);
+          });
+        }
+
+        function loadFile(file) {
+          init();
+          player.load(file, function(buffer) {
+            player.play(buffer);
+            setMetadata(file.name);
+			isPlaying = true;
+			setPlayPauseButton($("#play"), isPlaying);
+			setPlayPauseButton($(lastElement), isPlaying);	
+          });
+        }
+
+        function pauseButton() {
+		  isPlaying = !isPlaying;
+			setPlayPauseButton($("#play"), isPlaying);
+			setPlayPauseButton($(lastElement), isPlaying);  
+          player.togglePause();
+        }
+
+		
+		var lastElement;
+		var artistName;
+
+		
+		window.playSong = function (element) 
+		{
+			if(lastElement!=null) {
+				setPlayPauseButton($(lastElement), false);  
+				$(lastElement).parent().removeClass("active");				
+				$(lastElement).attr('onclick', 'window.playSong(this)');
+				//$(lastElement).click(playSong(lastElement));
+			}
+			lastElement = element;
+			modurl = element.getAttribute('data-modurl');	
+			
+			$(element).parent().addClass("active");
+			$(element).attr('onclick', 'window.pauseSong()');
+			//$(element).click(pauseButton);
+			artistName = element.getAttribute('data-artist');//document.getElementById('artist').innerHTML = element.getAttribute('data-artist');
+			encodedModurl = encodeURI(modurl);
+			encodedModurl = encodedModurl.replace(/#/g, '%23'); // this is required to encode the hash symbol
+			fullUrl = "/bridge.php?module=" + encodedModurl;	
+			console.log(fullUrl);
+			loadURL(fullUrl);
+		}
+		
+		window.pauseSong = function () 
+		{
+			pauseButton();
+		}
+
+        document.querySelector('#play').addEventListener('click', pauseButton, false);
+      };    
+	
+	  
+		function search() {
+			//start ajax request
+			$.ajax({
+				url: "/search.php",
+				type: "get",
+				data: { 
+					s : $('#inputSearch').val()
+				},
+				//force to handle it as text
+				dataType: "json",
+				async: true,
+				success: function(data) {
+					//let's display a few items
+					$('#searchResults').empty();
+					for (var i=0;i<data.length;++i)
+					{
+						$('#searchResults').append('<ul class="list-group-item"> <button style="margin-right:10px;" class="btn btn-default" type="button" data-modurl="'+data[i].URL+'" data-artist="'+data[i].ARTIST+'" onclick="window.playSong(this);"><span id="playIcon" class="glyphicon glyphicon-play" aria-hidden="true" /></button> <strong>'+data[i].ARTIST+'</strong> <span>'+data[i].SONGNAME+'</span> <span>('+data[i].FORMAT+')</span></ul>');
+					}
+				}
+			});
+		
+		}
+	
+	</script>
+    <script type="text/javascript" src="./libopenmpt.js"></script>
+    <script type="text/javascript" src="./chiptune2.js"></script>
+  </head>
+  <body style="margin:6px;">  
+    <div id="container" style="margin-bottom:30px;">
+		<div class="row">
+			<div id="headline" class="col-md-6 col-md-offset-3"><h1>Modland Player</h1></div>
+		</div>
+		<div class="row">
+			<div class="col-md-6 col-md-offset-3 ">
+				<div class="panel panel-default">
+				  <div class="panel-heading">Current Song</div>
+				  <div class="panel-body">
+						<button id="play" class="btn btn-default" style="margin-right:10px;" disabled> 
+							<span class="glyphicon glyphicon-play" aria-hidden="true"></span>
+						</button>
+						<strong id="artist"></strong> <span id="title">nothing loaded</span>					
+				  </div>
+				</div>			
+			</div>
+		</div>
+		<div class="row">
+		 <div class="col-md-6 col-md-offset-3">
+			<div class="input-group">
+			  <input type="text" id="inputSearch" class="form-control" placeholder="Search for artist or song" onkeydown="if (event.keyCode == 13){ window.search();};">
+			  <span class="input-group-btn">
+				<button class="btn btn-default" type="button" onclick="window.search();">Search</button>
+			  </span>
+			</div>
+		  </div>
+		</div>
+		<br/>
+		<div class="row">
+			<div class="col-md-6 col-md-offset-3">	
+				<ul id="searchResults" class="list-group">
+				</ul>			
+			</div>
+		</div>			
+	</div> 
+	<div class="footer navbar-fixed-bottom" style="background-color:#efefef;padding-top:8px;">
+		<p class="text-center"><small>Modland Player is using <a href="https://github.com/deskjet/chiptune2.js">Chiptune2.js</a>, <a href="https://getbootstrap.com/docs/3.3/">Bootstrap 3</a> and <a href="https://jquery.com/">jQuery</a>. You can find the source on <a href="https://github.com/mohzy83/modlandplayer">Github</a><small></p>
+	</div>
+</body></html>

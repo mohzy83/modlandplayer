@@ -1,0 +1,11 @@
+CREATE TABLE `modland` (
+ `ID` varchar(32) NOT NULL,
+ `FORMAT` varchar(100) NOT NULL,
+ `ARTIST` varchar(200) NOT NULL,
+ `SONGNAME` varchar(255) NOT NULL,
+ `FILESIZE` int(11) NOT NULL,
+ `URL` varchar(1000) NOT NULL,
+ PRIMARY KEY (`ID`),
+ KEY `FORMAT` (`FORMAT`),
+ KEY `ARTIST` (`ARTIST`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
