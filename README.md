@@ -10,6 +10,7 @@ Todos:
  - queue songs
  - change loop mode
  - select next and prev song
+ - download indicator
 
 
 Used libs:
