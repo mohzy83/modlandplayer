@@ -14,6 +14,9 @@ header("Content-Type: application/json; charset=UTF-8");
 	if ($conn->connect_error) {
 		die("Connection failed: " . $conn->connect_error);
 	}
+	
+	// List Top100 entries ordered by PLAYCOUNT
+	
 	$stmt = $conn->prepare("select * from modland WHERE PLAYCOUNT>0 order by PLAYCOUNT DESC LIMIT 100");
 	//$name = "%".strtoupper($searchString)."%";
 	//$stmt->bind_param("ss", $name, $name ); 
