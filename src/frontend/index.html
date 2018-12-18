@@ -116,7 +116,7 @@
 			artistName = element.getAttribute('data-artist');//document.getElementById('artist').innerHTML = element.getAttribute('data-artist');
 			encodedModurl = encodeURI(modurl);
 			encodedModurl = encodedModurl.replace(/#/g, '%23'); // this is required to encode the hash symbol
-			fullUrl = "/bridge.php?module=" + encodedModurl +"&id="+element.getAttribute('data-id');	
+			fullUrl = "/bridge.php?module=" + encodedModurl; //+"&id="+element.getAttribute('data-id');	
 			console.log(fullUrl);
 			
 			$.ajax({
