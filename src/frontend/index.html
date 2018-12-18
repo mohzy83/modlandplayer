@@ -116,8 +116,21 @@
 			artistName = element.getAttribute('data-artist');//document.getElementById('artist').innerHTML = element.getAttribute('data-artist');
 			encodedModurl = encodeURI(modurl);
 			encodedModurl = encodedModurl.replace(/#/g, '%23'); // this is required to encode the hash symbol
-			fullUrl = "/bridge.php?module=" + encodedModurl;	
+			fullUrl = "/bridge.php?module=" + encodedModurl +"&id="+element.getAttribute('data-id');	
 			console.log(fullUrl);
+			
+			$.ajax({
+				url: "/playcount.php",
+				type: "get",
+				data: { 
+					id : element.getAttribute('data-id')
+				},
+				//force to handle it as text
+				//dataType: "json",
+				async: true,
+				
+			});
+			
 			loadURL(fullUrl);
 		}
 		
@@ -146,12 +159,35 @@
 					$('#searchResults').empty();
 					for (var i=0;i<data.length;++i)
 					{
-						$('#searchResults').append('<ul class="list-group-item"> <button style="margin-right:10px;" class="btn btn-default" type="button" data-modurl="'+data[i].URL+'" data-artist="'+data[i].ARTIST+'" onclick="window.playSong(this);"><span id="playIcon" class="glyphicon glyphicon-play" aria-hidden="true" /></button> <strong>'+data[i].ARTIST+'</strong> <span>'+data[i].SONGNAME+'</span> <span>('+data[i].FORMAT+')</span></ul>');
+						$('#searchResults').append('<ul class="list-group-item"> <button style="margin-right:10px;" class="btn btn-default" type="button" data-modurl="'+data[i].URL+'" data-artist="'+data[i].ARTIST+'" data-id="'+data[i].ID+'" onclick="window.playSong(this);"><span id="playIcon" class="glyphicon glyphicon-play" aria-hidden="true" /></button> <strong>'+data[i].ARTIST+'</strong> <span>'+data[i].SONGNAME+'</span> <span>('+data[i].FORMAT+')</span></ul>');
 					}
 				}
 			});
 		
 		}
+		
+		function top100() {
+			//start ajax request
+			$.ajax({
+				url: "/top100.php",
+				type: "get",
+				//data: { 
+				//	s : $('#inputSearch').val()
+				//},
+				//force to handle it as text
+				dataType: "json",
+				async: true,
+				success: function(data) {
+					//let's display a few items
+					$('#searchResults').empty();
+					for (var i=0;i<data.length;++i)
+					{
+						$('#searchResults').append('<ul class="list-group-item"> <button style="margin-right:10px;" class="btn btn-default" type="button" data-modurl="'+data[i].URL+'" data-artist="'+data[i].ARTIST+'" data-id="'+data[i].ID+'" onclick="window.playSong(this);"><span id="playIcon" class="glyphicon glyphicon-play" aria-hidden="true" /></button> <strong>'+data[i].ARTIST+'</strong> <span>'+data[i].SONGNAME+'</span> <span>('+data[i].FORMAT+')</span> <span class="badge">'+data[i].PLAYCOUNT+'</span></ul>');
+					}
+				}
+			});
+		
+		}		
 	
 	</script>
     <script type="text/javascript" src="./libopenmpt.js"></script>
@@ -183,6 +219,7 @@
 			  <input type="text" id="inputSearch" class="form-control" placeholder="Search for artist or song (e.g. necros or maktone)" onkeydown="if (event.keyCode == 13){ window.search();};">
 			  <span class="input-group-btn">
 				<button class="btn btn-default" type="button" onclick="window.search();">Search</button>
+				<button class="btn btn-default" type="button" onclick="window.top100();">Top 100</button>
 			  </span>
 			</div>
 		  </div>
